@@ -1,0 +1,27 @@
+diff -ur a/src/view.c b/src/view.c
+--- a/src/view.c	2024-09-04 04:05:41.887247942 -0500
++++ b/src/view.c	2024-09-04 04:10:56.494285744 -0500
+@@ -1436,12 +1436,18 @@
+ 	assert(view);
+ 
+ 	enum ssd_mode mode = view_get_ssd_mode(view);
+-	if (rc.ssd_keep_border && mode == LAB_SSD_MODE_FULL) {
+-		view_set_ssd_mode(view, LAB_SSD_MODE_BORDER);
+-	} else if (mode != LAB_SSD_MODE_NONE) {
+-		view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
++	if (rc.ssd_keep_border) {
++		if (mode == LAB_SSD_MODE_FULL) {
++			view_set_ssd_mode(view, LAB_SSD_MODE_BORDER);
++		} else {
++			view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
++		}
+ 	} else {
+-		view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
++		if (mode == LAB_SSD_MODE_FULL) {
++			view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
++		} else {
++			view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
++		}
+ 	}
+ }
+ 
