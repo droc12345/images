@@ -1,3 +1,6 @@
+Change ToggleDecorations from 3 way to 2 way to match openbox behavior
+
+
 diff -ur a/src/view.c b/src/view.c
 --- a/src/view.c	2024-09-04 04:05:41.887247942 -0500
 +++ b/src/view.c	2024-09-04 04:10:56.494285744 -0500

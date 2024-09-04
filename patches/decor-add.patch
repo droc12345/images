@@ -1,3 +1,10 @@
+Add openbox style decoration actions
+
+- Decorate, set full decorations, ie titlebar and border
+- Undecorate, turn off all decorations
+- BorderOnly, border only decoration, unaffected by keepBorder setting
+
+
 diff -ur a/docs/labwc-actions.5.scd b/docs/labwc-actions.5.scd
 --- a/docs/labwc-actions.5.scd	2024-09-04 04:05:41.878247713 -0500
 +++ b/docs/labwc-actions.5.scd	2024-09-04 04:10:56.494285744 -0500

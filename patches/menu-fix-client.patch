@@ -1,3 +1,58 @@
+pipemenu enhancements
+    
+  pipemenus work both parented non parented
+    
+  <  openbox_menu>
+  <  menu id="app-menu" label="Applications" execute="labwc-menu-generator -p" />
+  ...
+  <  menu id="root-menu" label="">
+  ...
+  <  menu id="app-menu" />
+    
+  Or
+    
+  <  menu id="root-menu" label="">
+  <  separator label="Root Menu" />
+  <  menu id="weather-menu" label="Weather" execute="openweather.sh" />
+
+menu positioning
+    
+  menu placement
+  . x,y coordinates ie. 0,0 or 100,100
+  . centered on output monitor
+    
+  ShowMenu, within the action section
+    
+  -=- place at center of screen
+  action name="ShowMenu" menu="root-menu" atCursor="no" x="center" y="center"
+    
+  -=- 100 pixels in, 200 pixels down from upper left corner
+  action name="ShowMenu" menu="root-menu" atCursor="no" x="100" y="200"
+    
+  -=- 10% of width, and 50% of height
+  action name="ShowMenu" menu="root-menu" atCursor="no" x="10%" y="50%"
+    
+  -=- top left of view (old way)
+  action name="ShowMenu" menu="root-menu" atCursor="no"
+
+Builtin menus
+    
+    client list combined menu
+    shows all workspaces with all apps, current view highlighted by "*"
+    
+    <menu id="client-list-combined-menu" /> (inside root menu)
+    or
+    keybind action name="ShowMenu" menu="client-list-combined-menu"
+    
+    client send to menu
+    shows all workspaces that current view can be sent to, includes left
+    and right movement. Works best when added to Client menu.
+    
+    <menu id="client-send-to-menu" />
+    
+    Both menus use ">" and "<"  to highlight the current workspace
+
+
 diff -ur a/include/menu/menu.h b/include/menu/menu.h
 --- a/include/menu/menu.h	2024-09-04 04:05:41.880247764 -0500
 +++ b/include/menu/menu.h	2024-09-04 04:06:33.231559706 -0500
