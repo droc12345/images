@@ -1,0 +1,198 @@
+diff --git a/include/menu/menu.h b/include/menu/menu.h
+index 980eaa7..a9e6e15 100644
+--- a/include/menu/menu.h
++++ b/include/menu/menu.h
+@@ -47,6 +47,7 @@ struct menuitem {
+ 	struct menu_scene normal;
+ 	struct menu_scene selected;
+ 	struct menu_pipe_context *pipe_ctx;
++	struct view *client_list_view;  /* used by internal client-list */
+ 	struct wl_list link; /* menu.menuitems */
+ };
+ 
+@@ -135,4 +136,7 @@ void menu_close_root(struct server *server);
+ /* menu_reconfigure - reload theme and content */
+ void menu_reconfigure(struct server *server);
+ 
++void create_client_send_to_menu(struct server *server);
++void create_client_list_combined_menu(struct server *server);
++
+ #endif /* LABWC_MENU_H */
+diff --git a/src/action.c b/src/action.c
+index c38cba7..78316ee 100644
+--- a/src/action.c
++++ b/src/action.c
+@@ -633,6 +633,17 @@ show_menu(struct server *server, struct view *view,
+ 		return;
+ 	}
+ 
++	/*
++	 * need to be current for the running applications
++	 * as well as the width of the menu for placement
++	 * this is the only place it really works well.
++	 * --- Maybe Todo
++	 * If we redo menu_update_width then we could do things differently.
++	 * possibly carry max menu width as an int in struct menu
++	 */
++	create_client_list_combined_menu(menu->server);
++	create_client_send_to_menu(menu->server);
++
+ 	int x = server->seat.cursor->x;
+ 	int y = server->seat.cursor->y;
+ 
+diff --git a/src/menu/menu.c b/src/menu/menu.c
+index f8653d6..82a67b5 100644
+--- a/src/menu/menu.c
++++ b/src/menu/menu.c
+@@ -23,6 +23,8 @@
+ #include "common/string-helpers.h"
+ #include "labwc.h"
+ #include "menu/menu.h"
++#include "workspaces.h"
++#include "view.h"
+ #include "node.h"
+ #include "theme.h"
+ 
+@@ -908,6 +910,118 @@ menu_hide_submenu(struct server *server, const char *id)
+ 	}
+ }
+ 
++/*
++ * This is client-send-to-menu
++ * an internal menu similar to root-menu and client-menu
++ *
++ * This will look at workspaces and produce a menu
++ * with the workspace names that can be used with
++ * SendToDesktop, left/right options are included.
++ */
++void
++create_client_send_to_menu(struct server *server)
++{
++	struct menu *menu = menu_get_by_id(server,
++			"client-send-to-menu");
++
++	if (menu) {
++		struct menuitem *item, *next;
++		wl_list_for_each_safe(item, next, &menu->menuitems, link) {
++			item_destroy(item);
++		}
++	} else {
++		menu = menu_create(server, "client-send-to-menu", "Send to...");
++	}
++
++	menu->size.height = 0;
++
++	struct workspace *workspace;
++
++	wl_list_init(&menu->menuitems);
++	wl_list_for_each(workspace, &server->workspaces, link) {
++		if (workspace == server->workspace_current) {
++			current_item = item_create(menu, strdup_printf(">%s<", workspace->name),
++					/*show arrow*/ false);
++		} else {
++			current_item = item_create(menu, workspace->name, /*show arrow*/ false);
++		}
++		fill_item("name.action", "SendToDesktop");
++		fill_item("to.action", workspace->name);
++	}
++
++	current_item = separator_create(menu, "");
++	current_item = item_create(menu, "left", /*show arrow*/ false);
++	fill_item("name.action", "SendToDesktop");
++	fill_item("to.action", "left");
++	current_item = item_create(menu, "right", /*show arrow*/ false);
++	fill_item("name.action", "SendToDesktop");
++	fill_item("to.action", "right");
++	menu_update_width(menu);
++	wlr_scene_node_set_enabled(&menu->scene_tree->node, false);
++}
++
++/*
++ * This is client-list-combined-menu
++ * an internal menu similar to root-menu and client-menu
++ *
++ * This will look at workspaces and produce a menu
++ * with the workspace name as a separator label
++ * and the titles of the view, if any, below each workspace name.
++ * Active view is indicated by "*" preceeding title.
++ */
++void
++create_client_list_combined_menu(struct server *server)
++{
++	struct menu *menu = menu_get_by_id(server,
++			"client-list-combined-menu");
++
++	if (menu) {
++		struct menuitem *item, *next;
++		wl_list_for_each_safe(item, next, &menu->menuitems, link) {
++			item_destroy(item);
++		}
++	} else {
++		menu = menu_create(server, "client-list-combined-menu", "Clients...");
++	}
++
++	menu->size.height = 0;
++
++	struct workspace *workspace;
++	struct view *view;
++	struct buf buffer = BUF_INIT;
++
++	wl_list_init(&menu->menuitems);
++	wl_list_for_each(workspace, &server->workspaces, link) {
++		buf_add_fmt(&buffer, workspace == server->workspace_current ? ">%s<" : "%s",
++				workspace->name);
++		current_item = separator_create(menu, buffer.data);
++		buf_clear(&buffer);
++
++		wl_list_for_each(view, &server->views, link) {
++			if (view->workspace == workspace) {
++				if (view == server->active_view) {
++					buf_add(&buffer, "*");
++				}
++				buf_add(&buffer, view_get_string_prop(view, "title"));
++
++				current_item = item_create(menu, buffer.data, /*show arrow*/ false);
++				current_item->id = xstrdup(menu->id);
++				current_item->client_list_view = view;
++				fill_item("name.action", "Focus");
++				fill_item("name.action", "Raise");
++				buf_clear(&buffer);
++			}
++		}
++		current_item = item_create(menu, "Go there...", /*show arrow*/ false);
++		current_item->id = xstrdup(menu->id);
++		fill_item("name.action", "GoToDesktop");
++		fill_item("to.action", workspace->name);
++	}
++	buf_reset(&buffer);
++	menu_update_width(menu);
++	wlr_scene_node_set_enabled(&menu->scene_tree->node, false);
++}
++
+ static void
+ init_rootmenu(struct server *server)
+ {
+@@ -983,6 +1097,8 @@ void
+ menu_init(struct server *server)
+ {
+ 	wl_list_init(&server->menus);
++	create_client_list_combined_menu(server);
++	create_client_send_to_menu(server);
+ 	parse_xml("menu.xml", server);
+ 	init_rootmenu(server);
+ 	init_windowmenu(server);
+@@ -1467,7 +1583,13 @@ menu_execute_item(struct menuitem *item)
+ 	 * menu_close() and destroy_pipemenus() which we have to handle
+ 	 * before/after action_run() respectively.
+ 	 */
+-	actions_run(item->parent->triggered_by_view, server, &item->actions, 0);
++	if (item->id && !strcmp(item->id, "client-list-combined-menu")
++			&& item->client_list_view) {
++		actions_run(item->client_list_view, server, &item->actions, 0);
++	} else {
++		actions_run(item->parent->triggered_by_view, server,
++				&item->actions, 0);
++	}
+ 
+ 	server->menu_current = NULL;
+ 	destroy_pipemenus(server);
