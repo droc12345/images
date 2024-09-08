@@ -1,10 +1,8 @@
-Change ToggleDecorations from 3 way to 2 way to match openbox behavior
-
-
-diff -ur a/src/view.c b/src/view.c
---- a/src/view.c	2024-09-04 04:05:41.887247942 -0500
-+++ b/src/view.c	2024-09-04 04:10:56.494285744 -0500
-@@ -1436,12 +1436,18 @@
+diff --git a/src/view.c b/src/view.c
+index b1b4265..a2803ea 100644
+--- a/src/view.c
++++ b/src/view.c
+@@ -1436,12 +1436,18 @@ view_toggle_decorations(struct view *view)
  	assert(view);
  
  	enum ssd_mode mode = view_get_ssd_mode(view);

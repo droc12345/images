@@ -19,7 +19,7 @@ index 980eaa7..a9e6e15 100644
 +
  #endif /* LABWC_MENU_H */
 diff --git a/src/action.c b/src/action.c
-index c38cba7..78316ee 100644
+index a157d6e..9f6fb3c 100644
 --- a/src/action.c
 +++ b/src/action.c
 @@ -633,6 +633,17 @@ show_menu(struct server *server, struct view *view,
