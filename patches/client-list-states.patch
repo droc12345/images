@@ -1,0 +1,21 @@
+--- a/src/menu/menu.c	2024-09-18 17:25:06.249015864 -0500
++++ b/src/menu/menu.c	2024-09-18 17:53:04.388563752 -0500
+@@ -1002,8 +1002,17 @@
+ 		wl_list_for_each(view, &server->views, link) {
+ 			if (view->workspace == workspace) {
+ 				if (view == server->active_view) {
+-					buf_add(&buffer, "*");
++					buf_add(&buffer, "* ");
++				} else if (view->minimized) {
++					buf_add(&buffer, "v ");
++				} else if (view->fullscreen) {
++					buf_add(&buffer, "- ");
++				} else if (view->maximized) {
++					buf_add(&buffer, "^ ");
++				} else {
++					buf_add(&buffer, "  ");
+ 				}
++
+ 				buf_add(&buffer, view_get_string_prop(view, "title"));
+ 
+ 				current_item = item_create(menu, buffer.data, /*show arrow*/ false);
