@@ -1,6 +1,6 @@
 Patches for personalization
 ============
--- latest git commit we match against 8850368ab943d49dbd312d34fccd10e336b68ec9
+-- latest git commit we match against 4a1375c7011e32e26150339a704454821282ebbb
 - decor-add.patch          -- adds Decorate/Undecorate like openbox and a BorderOnly option
 - tog-decor-fix.patch      -- changes 3-way decorate toggle back to 2 state like openbox
 - client-list-states.patch -- add states to client-list-combined-menu (min, max, full, active)
