@@ -8,6 +8,9 @@ Various patches to mimic openbox
 
 I do try and keep these patches current against the latest labwc git
 
+Edit to add: Dec 19, 2024
+I've walked away from creating patches for labwc, I'm focusing on other things
+so I won't be updating anything here. Good luck to everyone.
 
 Disclaimer:
 ============
